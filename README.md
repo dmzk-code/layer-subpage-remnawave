@@ -18,9 +18,9 @@
 
 Добавлены/изменены файлы
 - backend/src/modules/root/mihomo-layer.service.ts (новый)
-- серверная часть/src/modules/root/root.service.ts
-- серверная часть/src/modules/root/root.module.ts
-- серверная часть/src/common/config/app-config/config.schema.ts
+- backend/src/modules/root/root.service.ts
+- backend/src/modules/root/root.module.ts
+- backend/src/common/config/app-config/config.schema.ts
 
 Что она делает
 - Когда ответ на подписку выглядит как Mihomo YAML (содержит прокси-серверы
