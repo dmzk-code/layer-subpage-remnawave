@@ -1,7 +1,9 @@
 # Remnawave Subscription Page Fork
 
 ## Редактор конфигураций Remnawave
-Проект ориентирован на простое и легкое редактирование конфигов, под mihomo, внутри remnawave sub-page 
+Проект ориентирован на простое и легкое редактирование конфигов, под **xray-json** и **mihomo**, патч предназначен только для *Remnawave Subscription Page*
+
+**Для получения патча ТГ:** [dmzk-code](https://t.me/vitalii_aleksandriyskiy "Получить патч")
 
 ### Основные функции: 
 - Создание Авто-серверов(балансировка)
@@ -35,7 +37,8 @@
 
 ### Пример настройки (compose)
 - Добавляем монтирование тома в контейнер серверной службы.
-- Добавляем env *MIHOMO_LAYER_CONFIG_PATH*.
+- Добавляем env *MIHOMO_LAYER_CONFIG_PATH=/app/configMi.yaml*.
+- Добавляем env *YAML_EDITOR_PREFIX=***/секретный/путь/для/редактированияконфига**.
 
 ### Пример фрагмента (адаптируйте к вашему файлу compose):
 
@@ -50,8 +53,9 @@ services:
           - .env
         environment:
           - MIHOMO_LAYER_CONFIG_PATH=/app/configMi.yaml
+          - YAML_EDITOR_PREFIX=/секретный/путь/для/редактированияКонфига
         volumes:
-          - /opt/remnawave/subscription/configMi.yaml:/app/configMi.yaml:ro
+          - /opt/remnawave/subscription/configMi.yaml:/app/configMi.yaml
         ports:
           - '127.0.0.1:3010:3010'
         networks:
