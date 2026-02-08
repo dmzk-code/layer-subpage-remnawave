@@ -1,149 +1,164 @@
-# Редактор конфигураций Remnawave
+# Remnawave Subscription Page Fork
+
+## Редактор конфигураций Remnawave
 Проект ориентирован на простое и легкое редактирование конфигов, под mihomo, внутри remnawave sub-page 
 
-Основные функции: 
+### Основные функции: 
 - Создание Авто-серверов(балансировка)
 - Скрытие серверов из подписки
-- Отказоустойчивость подписки
+- Отказоустойчивость сервера
 - Замена select'ов в proxy-groups
 - Удаление select'ов в конфигурации
 
-Интеграция уровня Mihomo (подстраничный форк)
-
-Резюме
-- Добавлен конфигурационный слой Mihomo с возможностью быстрой перезагрузки в серверную часть, который переписывает
-  subscription YAML на основе configMi.yaml.
-- Работает во время отклика и не требует перезапуска службы при
-изменении configMi.yaml.
-
-Добавлены/изменены файлы
+### Добавлены/изменены файлы
 - backend/src/modules/root/mihomo-layer.service.ts (новый)
 - backend/src/modules/root/root.service.ts
 - backend/src/modules/root/root.module.ts
 - backend/src/common/config/app-config/config.schema.ts
+- backend/src/common/constants/index.ts
+- backend/src/common/constants/ignored-headers.constant.ts
 
-Что она делает
+
+### Что вообще происходит?
 - Когда ответ на подписку выглядит как Mihomo YAML (содержит прокси-серверы
-  и/или прокси-групп), он анализируется и переписывается заново:
-  - применяются параметры баланс/переделка/скрытие/замена/удаление.
-  - замена применяется только к группам с типом: select (включая ПРОКСИ).
+  и/или прокси-групп), он анализируется и переписывается заново на основе правил:
+  - применяются параметры баланс/переделка/скрытие/замена/удаление на основе конфига.
   - удаление удаляет элементы прокси и ссылки на группы повсюду.
   - новые группы вставляются перед ПРОКСИ и добавляются в ПРОКСИ, если они
 не являются целью замены, скрыты или удалены.
 
-Куда поместить configMi.yaml
-- Поместите configMi.yaml на хост и смонтируйте его в контейнер.
-- Установите для env MIHOMO_LAYER_CONFIG_PATH значение пути внутри контейнера.
-- Если MIHOMO_LAYER_CONFIG_PATH не задан, серверная часть выполнит поиск
-  configMi.yaml в рабочем каталоге серверной части (process.cwd()).
+### Куда поместить configMi.yaml?
+- Поместите *configMi.yaml* на хост и смонтируйте его в контейнер.
+- Установите для env **MIHOMO_LAYER_CONFIG_PATH** значение пути внутри контейнера.
+- Если **MIHOMO_LAYER_CONFIG_PATH** не задан, серверная часть выполнит поиск
+  *configMi.yaml* в рабочем каталоге серверной части (process.cwd()).
 
-Пример настройки (compose)
+### Пример настройки (compose)
 - Добавляем монтирование тома в контейнер серверной службы.
-- Добавляем env MIHOMO_LAYER_CONFIG_PATH.
+- Добавляем env *MIHOMO_LAYER_CONFIG_PATH*.
 
-Пример фрагмента (адаптируйте к вашему файлу compose):
-услуги:
-  remnawave-страница подписки:
-    тома:
-      - /opt/remnawave/подписка/configMi.yaml:/app/configMi.yaml:ro
-    окружающая среда:
-      - MIHOMO_LAYER_CONFIG_PATH=/app/configMi.yaml
+### Пример фрагмента (адаптируйте к вашему файлу compose):
 
-Локальный запуск (dev)
-1) Установка deps:
-   подстраница cd-fork/серверная часть
-   установка npm
-2) Установка env:
-   MIHOMO_LAYER_CONFIG_PATH=C:\путь\к\configMi.yaml
-3) Запустите:
-   запуск npm:dev
-
-Локальный запуск (prod)
-1) Сборка:
-   подстраница cd-форк/серверная часть
-   запуск сборки npm
-2) Установка env:
-   MIHOMO_LAYER_CONFIG_PATH=/путь/к/configMi.yaml
-3) Запустить:
-   запуск npm:prod
-
-Записи
-- Слой горячей загружается с использованием файла время изменения; Изменения вступают в силу на следующий
-  запрос на подписку.
-- Если configMi.yaml отсутствует или недействителен, служба возвращается к
-последней действительной кэшированной версии (или без изменений, если таковых нет).
-
-# Configuration Editor Remnawave
-The project is focused on simple and easy editing of configs, under mihomo, inside the remnawave sub-page 
-
-Main features: 
-- Creating Auto-servers (balancing)
-- Hiding servers from the subscription
-- Subscription failover
-- Replacing select's in proxy-groups
-- Removing select's in the configuration
-
-Mihomo layer integration (sub-page-fork)
-
-Summary
-- Added a hot-reloadable Mihomo config layer to the backend that rewrites
-  subscription YAML based on configMi.yaml.
-- Works at response time and does not require restarting the service when
-  configMi.yaml changes.
-
-Files added/modified
-- backend/src/modules/root/mihomo-layer.service.ts (new)
-- backend/src/modules/root/root.service.ts
-- backend/src/modules/root/root.module.ts
-- backend/src/common/config/app-config/config.schema.ts
-
-What it does
-- When a subscription response looks like Mihomo YAML (contains proxies
-  and/or proxy-groups), it is parsed and rewritten:
-  - balance/remake/hidden/replace/delete are applied.
-  - replace is applied only to groups with type: select (including PROXY).
-  - delete removes proxy items and group references everywhere.
-  - new groups are inserted before PROXY and added to PROXY unless they
-    are a replace target, hidden, or deleted.
-
-Where to put configMi.yaml
-- Put configMi.yaml on the host and mount it into the container.
-- Set env MIHOMO_LAYER_CONFIG_PATH to the in-container path.
-- If MIHOMO_LAYER_CONFIG_PATH is not set, the backend looks for
-  configMi.yaml in the backend working directory (process.cwd()).
-
-Docker example (compose)
-- Add a volume mount to the backend service container.
-- Add env MIHOMO_LAYER_CONFIG_PATH.
-
-Example snippet (adjust to your compose file):
+```
 services:
-  remnawave-subscription-page:
-    volumes:
-      - /opt/remnawave/subscription/configMi.yaml:/app/configMi.yaml:ro
-    environment:
-      - MIHOMO_LAYER_CONFIG_PATH=/app/configMi.yaml
+    remnawave-subscription-page:
+        image: remnawave/sub-page-patched:7.0.5-patched
+        container_name: remnawave-subscription-page
+        hostname: remnawave-subscription-page
+        restart: always
+        env_file:
+          - .env
+        environment:
+          - MIHOMO_LAYER_CONFIG_PATH=/app/configMi.yaml
+        volumes:
+          - /opt/remnawave/subscription/configMi.yaml:/app/configMi.yaml:ro
+        ports:
+          - '127.0.0.1:3010:3010'
+        networks:
+          - remnawave-network
+```
 
-Local run (dev)
-1) Install deps:
-   cd sub-page-fork/backend
-   npm install
-2) Set env:
-   MIHOMO_LAYER_CONFIG_PATH=C:\path\to\configMi.yaml
-3) Run:
-   npm run start:dev
+## Полный цикл сборки
+1. Клонировать оффициальный репозиторий *subscription-page* в папку *fork/sub-page-patched*
+2. Скачать патч файлы из текущего репозитория *patch-files*
+3. Поместить все файлы из *patch-files* в папку с официальным репозиторием *fork/sub-page-patched* с заменой файлов 
+4. Выполнить команды внутри папки *fork* для сборки
+```
+docker build -t remnawave/sub-page-patched:7.0.5-patched -f sub-page-patched\Dockerfile sub-page-patched
+```
+```
+docker save -o C:\Users\dmzk-code\fork\sub-page-patched.tar remnawave/sub-page-patched:7.0.5-patched
+```
+> [!IMPORTANT]
+> Заменить на свой путь к папке *C:\Users\dmzk-code\fork*
+> [!IMPORTANT]
+> Если машина слабая, то лучше собирать на своём устройстве, Docker для Windows.
+5. Загружаем образ на сервер *C:\Users\dmzk-code\fork\sub-page-patched.tar* в */opt/remnawave/subscription*
+6. Загружаем файл *configMi.yaml* в */opt/remnawave/subscription*
+7. Подгружаем слои
 
-Local run (prod)
-1) Build:
-   cd sub-page-fork/backend
-   npm run build
-2) Set env:
-   MIHOMO_LAYER_CONFIG_PATH=/path/to/configMi.yaml
-3) Run:
-   npm run start:prod
-
-Notes
-- The layer is hot-loaded using file mtime; changes apply on the next
-  subscription request.
-- If configMi.yaml is missing or invalid, the service falls back to the
-  last valid cached version (or no changes if none).
+```
+docker load -i /opt/remnawave/subscription/sub-page-patched.tar
+```
+8. Выполняем команды
+```
+cd /opt/remnawave/subscription && docker compose down && docker compose up -d && docker compose logs -f -t
+```
+> [!NOTE]
+> Если нет файла *configMi.yaml* в */opt/remnawave/subscription* страница подписки будет работать как обычно
+## Пример файла configMi.yaml
+```
+balance:
+  - name: "📡 [AUTO] - Обычные"
+    hidden: true
+    type: load-balance
+    strategy: sticky-sessions # или round-robin
+    input-proxies: #тут мы перечесляем какие сервера будут в балансере для автовыбора
+      - "🇫🇮 [B1] - Финляндия"
+      - "🇪🇪 [B1] - Эстония"
+      - "🇩🇪 [B1] - Германия"
+      - "🇺🇸 [B1] - США"
+      - "🇮🇹 [B1] - Италия"
+  - name: "🔐 [AUTO] - Криптографические"
+    hidden: true
+    type: load-balance
+    strategy: sticky-sessions # или consistent-hashing
+    input-proxies:
+      - "🇫🇮 [K1] - Финляндия"
+      - "🇪🇪 [K1] - Эстония"
+      - "🇩🇪 [K1] - Германия"
+      - "🇺🇸 [K1] - США"
+      - "🇮🇹 [K1] - Италия"
+remake:
+  - name: "🇫🇮 [B1] - Финляндия"
+    hidden: true
+    output-name: "🇫🇮 [B1-WTL] - Финляндия"
+    type: fallback
+    input-proxies: #тут мы перечесляем какая группа будет в отказоустойчивости
+      - "🇫🇮 [B1] - Финляндия"
+      - "🇫🇮 [WTL] - Финляндия"
+  - name: "🇪🇪 [B1] - Эстония"
+    hidden: true
+    output-name: "🇪🇪 [B1-WTL] - Эстония"
+    type: fallback 
+    input-proxies:
+      - "🇪🇪 [B1] - Эстония"
+      - "🇪🇪 [WTL] - Эстония"
+  - name: "🇩🇪 [B1] - Германия"
+    hidden: true
+    output-name: "🇩🇪 [B1-WTL] - Германия"
+    type: fallback
+    input-proxies:
+      - "🇩🇪 [B1] - Германия"
+      - "🇩🇪 [WTL] - Германия"
+  - name: "🇺🇸 [B1] - США"
+    hidden: true
+    output-name: "🇺🇸 [B1-WTL] - США"
+    type: fallback
+    input-proxies:
+      - "🇺🇸 [B1] - США"
+      - "🇺🇸 [WTL] - США"
+hidden:
+  input-proxies: #тут мы перечесляем какие сервера не будут видны пользователю так как к ним можно будет подключиться только через fallback в случае если напрямую нет доступа к нужному серверу
+    - "🇫🇮 [WTL] - Финляндия"
+    - "🇪🇪 [WTL] - Эстония"
+    - "🇩🇪 [WTL] - Германия"
+    - "🇺🇸 [WTL] - США"
+replace:
+  proxies: #тут мы перечесляем какой select в proxy-groups заменяем на другой select
+    "📡 [B1] - Обычные": "📡 [AUTO] - Обычные"
+    "🔐 [K1] - Криптографические": "🔐 [AUTO] - Криптографические"
+    "🇫🇮 [B1] - Финляндия": "🇫🇮 [B1-WTL] - Финляндия"
+    "🇪🇪 [B1] - Эстония": "🇪🇪 [B1-WTL] - Эстония"
+    "🇩🇪 [B1] - Германия": "🇩🇪 [B1-WTL] - Германия"
+    "🇺🇸 [B1] - США": "🇺🇸 [B1-WTL] - США"
+delete:
+  proxies: #тут мы перечесляем что хотим удалить из конфигурации полностью
+    - "📡 [B1] - Обычные"
+    - "🔐 [K1] - Криптографические"
+    - "🔆 [XT] - Стабильные день"
+    - "🌗 [WTL] - Телефон ночь"
+    
+```
+> [!TIP]
+> Патч тестировался на версии 7.0.5.
